@@ -1,18 +1,23 @@
 import * as fs from "node:fs";
+import path from "path";
 
-// const regex = /https:\/\/open\.spotify\.com\/\S+/;
-const regex = /^https:\/\/open\.spotify\.com\/track\/([A-Za-z0-9]+)/;
+const regex = {
+    spotify: /^https:\/\/open\.spotify\.com\/track\/([A-Za-z0-9]+)/g,
+    soundcloud: /https?:\/\/(?:www\.)?(?:on\.)?soundcloud\.com\/[^\s?]+/g,
+    youtube: /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=[^\s?]+/g,
+};
 
-function fileRead(source) {
-    const jsonData = fs.readFileSync(source, "utf-8");
-    return JSON.parse(jsonData);
+function read(source) {
+    const data = fs.readFileSync(source, "utf-8");
+
+    if (path.extname(source).toLowerCase() === ".json") {
+        return JSON.parse(data);
+    } else {
+        return data;
+    }
 }
-function mooRead(source) {
-    const mooData = fs.readFileSync(source, "utf-8");
-    return mooData;
-}
 
-function parser(data) {
+function parser(data, regex, service) {
     let parsedData = "";
     let counterMatch = 0;
     let counter = 0;
@@ -26,12 +31,12 @@ function parser(data) {
         counter = i;
     }
     process.stdout.write(
-        `PROGRESS\nMatches Found: ${counterMatch}\nPosts Checked: ${counter}\n`
+        `Searching ${service}\nMatches Found: ${counterMatch}\nPosts Checked: ${counter}\n`
     );
     return parsedData;
 }
 
-function fileWrite(fileName, data) {
+function write(fileName, data) {
     fs.writeFile(fileName, data, function (err) {
         if (err) throw err;
         console.log(fileName + " Saved!");
@@ -39,13 +44,14 @@ function fileWrite(fileName, data) {
 }
 
 function main() {
-    const mooTxt = mooRead("moo.txt");
+    const mooTxt = read("moo.txt");
+    const rawData = read("data.json");
 
-    const rawData = fileRead("data.json");
-    // console.log("RAW DATA" + rawData);
-    const newData = parser(rawData);
-    // console.log("NEW DATA" + newData);
-    fileWrite("spotify_tracks.txt", mooTxt + newData);
+    for (const [service, ex] of Object.entries(regex)) {
+        const newData = parser(rawData, ex, service);
+        write(`moosic_${service}_tracks.txt`, mooTxt + newData);
+        console.log(newData);
+    }
 }
 
 main();

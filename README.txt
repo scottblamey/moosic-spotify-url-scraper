@@ -27,4 +27,6 @@
          \/_/  \/_/ \/_____/ \/_____/ \/_____/ \/_/ \/_____/              
                                                                                
 
-A Script to extract Spotify URLs from Facebook Messenger logs in JSON format.
+A Script to extract streaming site URLs from Facebook Messenger logs in JSON format.
+
+Currently compatable with Spotify, youtube and Soundcloud.
